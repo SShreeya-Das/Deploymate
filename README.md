@@ -70,11 +70,10 @@ Create a ".env" file in the project root:
 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-ALERT_EMAIL=your_email@gmail.com
+SMTP_USER=shreeyadas.111@gmail.com
+SMTP_PASSWORD= my password
+ALERT_EMAIL=shreeyadas@gmail.com
 
-Use a Gmail App Password rather than your regular account password.
 
 5. Run the application
 
