@@ -92,16 +92,18 @@ python -m pytest -v
 
 🔌 API Endpoints
 
-Method| Endpoint| Description
-GET| "/"| Application health check
-POST| "/monitor"| Check a website manually
-POST| "/websites"| Register a website
-GET| "/websites"| List monitored websites
-GET| "/history"| Retrieve monitoring history
-GET| "/incidents"| Retrieve incident history
-POST| "/test-email"| Test email notifications
-GET| "/dashboard"| Open monitoring dashboard
+## 🔌 API Endpoints
 
+| Method | Endpoint | Description |
+|:---|:---|:---|
+| GET | `/` | Application health check |
+| POST | `/monitor` | Check a website manually |
+| POST | `/websites` | Register a website |
+| GET | `/websites` | List monitored websites |
+| GET | `/history` | Retrieve monitoring history |
+| GET | `/incidents` | Retrieve incident history |
+| POST | `/test-email` | Test email notifications |
+| GET | `/dashboard` | Open monitoring dashboard |
 🔮 Future Improvements
 
 - Advanced URL and SSRF protection
@@ -116,7 +118,9 @@ GET| "/dashboard"| Open monitoring dashboard
 Shreeya Swarupa Das
 
 - GitHub: "@SShreeya-Das" (https://github.com/SShreeya-Das)
-- LinkedIn: "Connect with me" (https://linkedin.com/in/shreeya-swarupa-das-660689289)
+- LinkedIn: "Connect with me"www.linkedin.com/in/shreeya-swarupa-das-660689289
+
+
 
 ---
 
