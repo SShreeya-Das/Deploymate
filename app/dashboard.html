@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeployMate | Monitoring Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0b1020;
+            color: #e5e7eb;
+            padding: 30px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            color: #ffffff;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+
+        .live {
+            color: #4ade80;
+            font-size: 14px;
+            margin-right: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .card, .panel {
+            background: #151d32;
+            border: 1px solid #26324a;
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .card p {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .card h2 {
+            font-size: 30px;
+            margin-top: 12px;
+        }
+
+        .panel {
+            margin-bottom: 24px;
+        }
+
+        h3 {
+            margin-bottom: 18px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px 10px;
+            text-align: left;
+            border-bottom: 1px solid #26324a;
+        }
+
+        th {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .up {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .down {
+            color: #f87171;
+            font-weight: bold;
+        }
+
+        .pending {
+            color: #facc15;
+            font-weight: bold;
+        }
+
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4f46e5;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .panel {
+            overflow-x: auto;
+        }
+
+        .message {
+            color: #94a3b8;
+            padding: 15px 0;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 16px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                align-items: flex-start;
+            }
+
+            .chart-container {
+                height: 220px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <h1>DeployMate.</h1>
+        <p class="subtitle">Website monitoring and incident management</p>
+    </div>
+
+    <div>
+        <span class="live">● Live Monitoring</span>
+        <button id="refreshButton" onclick="loadDashboard()">Refresh</button>
+    </div>
+</header>
+
+<!-- Main statistics -->
+<section class="stats">
+
+    <div class="card">
+        <p>Monitored Websites</p>
+        <h2 id="total">0</h2>
+    </div>
+
+    <div class="card">
+        <p>Websites UP</p>
+        <h2 id="online">0</h2>
+    </div>
+
+    <div class="card">
+        <p>Open Incidents</p>
+        <h2 id="incidents">0</h2>
+    </div>
+
+</section>
+
+<!-- Performance statistics -->
+<section class="stats">
+
+    <div class="card">
+        <p>Average Response Time</p>
+        <h2 id="averageTime">-- ms</h2>
+    </div>
+
+    <div class="card">
+        <p>Fastest Response</p>
+        <h2 id="fastestTime">-- ms</h2>
+    </div>
+
+    <div class="card">
+        <p>Slowest Response</p>
+        <h2 id="slowestTime">-- ms</h2>
+    </div>
+
+</section>
+
+<!-- Response time chart -->
+<section class="panel">
+    <h3>Response Time Analytics</h3>
+
+    <div class="chart-container">
+        <canvas id="responseChart"></canvas>
+    </div>
+</section>
+
+<!-- Monitored websites -->
+<section class="panel">
+    <h3>Monitored Websites</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Website</th>
+                <th>Status</th>
+                <th>Interval</th>
+            </tr>
+        </thead>
+
+        <tbody id="websiteTable">
+            <tr>
+                <td colspan="3" class="message">Loading websites...</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Recent checks -->
+<section class="panel">
+    <h3>Recent Monitoring Checks</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Website</th>
+                <th>Status</th>
+                <th>Response Time</th>
+                <th>HTTP Code</th>
+            </tr>
+        </thead>
+
+        <tbody id="historyTable">
+            <tr>
+                <td colspan="4" class="message">Loading checks...</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Incident history -->
+<section class="panel">
+    <h3>Incident History</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Website</th>
+                <th>Status</th>
+                <th>Started At</th>
+            </tr>
+        </thead>
+
+        <tbody id="incidentTable">
+            <tr>
+                <td colspan="3" class="message">Loading incidents...</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<script>
+let responseChart = null;
+
+async function loadDashboard() {
+
+    const refreshButton = document.getElementById("refreshButton");
+    refreshButton.disabled = true;
+    refreshButton.textContent = "Refreshing...";
+
+    try {
+
+        const [websitesRes, historyRes, incidentsRes] =
+            await Promise.all([
+                fetch("/websites"),
+                fetch("/history"),
+                fetch("/incidents")
+            ]);
+
+        if (!websitesRes.ok || !historyRes.ok || !incidentsRes.ok) {
+            throw new Error("Unable to load dashboard data");
+        }
+
+        const websites = await websitesRes.json();
+        const history = await historyRes.json();
+        const incidents = await incidentsRes.json();
+
+        // Latest check for each website
+        const latestChecks = new Map();
+
+        history.forEach(check => {
+            if (!latestChecks.has(check.url)) {
+                latestChecks.set(check.url, check);
+            }
+        });
+
+        // Main statistics
+        const online = websites.filter(website => {
+            const check = latestChecks.get(website.url);
+
+            return website.is_active && check?.status === "UP";
+        }).length;
+
+        document.getElementById("total").textContent =
+            websites.length;
+
+        document.getElementById("online").textContent =
+            online;
+
+        document.getElementById("incidents").textContent =
+            incidents.filter(item => item.status === "OPEN").length;
+
+        // Response time statistics
+        const responseTimes = history
+            .filter(check =>
+                check.status === "UP" &&
+                typeof check.response_time_ms === "number"
+            )
+            .map(check => check.response_time_ms);
+
+        if (responseTimes.length > 0) {
+
+            const average =
+                responseTimes.reduce((a, b) => a + b, 0)
+                / responseTimes.length;
+
+            document.getElementById("averageTime").textContent =
+                average.toFixed(2) + " ms";
+
+            document.getElementById("fastestTime").textContent =
+                Math.min(...responseTimes).toFixed(2) + " ms";
+
+            document.getElementById("slowestTime").textContent =
+                Math.max(...responseTimes).toFixed(2) + " ms";
+
+        } else {
+
+            document.getElementById("averageTime").textContent = "-- ms";
+            document.getElementById("fastestTime").textContent = "-- ms";
+            document.getElementById("slowestTime").textContent = "-- ms";
+        }
+
+        // Response time chart
+        const chartHistory = history
+            .filter(check =>
+                check.status === "UP" &&
+                typeof check.response_time_ms === "number"
+            )
+            .slice(0, 20)
+            .reverse();
+
+        if (window.Chart) {
+
+            const labels = chartHistory.map(check =>
+                new Date(check.checked_at).toLocaleTimeString()
+            );
+
+            const values = chartHistory.map(check =>
+                check.response_time_ms
+            );
+
+            const canvas = document.getElementById("responseChart");
+
+            if (responseChart) {
+
+                responseChart.data.labels = labels;
+                responseChart.data.datasets[0].data = values;
+                responseChart.update();
+
+            } else {
+
+                responseChart = new Chart(canvas.getContext("2d"), {
+
+                    type: "line",
+
+                    data: {
+                        labels: labels,
+
+                        datasets: [{
+                            label: "Response Time (ms)",
+                            data: values,
+                            borderColor: "#818cf8",
+                            backgroundColor: "rgba(129,140,248,0.12)",
+                            fill: true,
+                            tension: 0.35
+                        }]
+                    },
+
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: "#e5e7eb"
+                                }
+                            }
+                        },
+
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: "#94a3b8"
+                                },
+                                grid: {
+                                    color: "#26324a"
+                                }
+                            },
+
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: "#94a3b8"
+                                },
+                                grid: {
+                                    color: "#26324a"
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Monitored websites table
+        document.getElementById("websiteTable").innerHTML =
+
+            websites.map(website => {
+
+                const check = latestChecks.get(website.url);
+                const status = check?.status || "PENDING";
+
+                const statusClass =
+                    status === "UP" ? "up" :
+                    status === "DOWN" ? "down" : "pending";
+
+                return `
+                    <tr>
+                        <td>${escapeHTML(website.url)}</td>
+                        <td class="${statusClass}">
+                            ${escapeHTML(status)}
+                        </td>
+                        <td>${website.interval_seconds}s</td>
+                    </tr>
+                `;
+
+            }).join("") ||
+
+            '<tr><td colspan="3" class="message">No websites registered</td></tr>';
+
+        // Recent monitoring checks
+        document.getElementById("historyTable").innerHTML =
+
+            history.slice(0, 10).map(check => `
+
+                <tr>
+                    <td>${escapeHTML(check.url)}</td>
+
+                    <td class="${check.status === "UP" ? "up" : "down"}">
+                        ${escapeHTML(check.status)}
+                    </td>
+
+                    <td>
+                        ${check.response_time_ms ?? "N/A"} ms
+                    </td>
+
+                    <td>
+                        ${check.status_code ?? "N/A"}
+                    </td>
+                </tr>
+
+            `).join("") ||
+
+            '<tr><td colspan="4" class="message">No checks yet</td></tr>';
+
+        // Incident history
+        document.getElementById("incidentTable").innerHTML =
+
+            incidents.slice(0, 10).map(incident => `
+
+                <tr>
+                    <td>${escapeHTML(incident.url)}</td>
+
+                    <td class="${incident.status === "OPEN" ? "down" : "up"}">
+                        ${escapeHTML(incident.status)}
+                    </td>
+
+                    <td>${escapeHTML(incident.started_at)}</td>
+                </tr>
+
+            `).join("") ||
+
+            '<tr><td colspan="3" class="message">No incidents recorded</td></tr>';
+
+    } catch (error) {
+
+        console.error("Dashboard loading failed:", error);
+        alert("Unable to refresh dashboard. Check the browser console.");
+
+    } finally {
+
+        refreshButton.disabled = false;
+        refreshButton.textContent = "Refresh";
+    }
+}
+
+// Escape HTML to prevent unsafe content in the tables
+function escapeHTML(value) {
+
+    return String(value).replace(/[&<>"']/g, char => ({
+
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+
+    })[char]);
+}
+
+// Load dashboard when page opens
+loadDashboard();
+
+</script>
+
+</body>
+</html>

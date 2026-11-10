@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+httpx
+pytest
+sqlalchemy
+APScheduler>=3.10,<4
+python -dotenv
