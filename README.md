@@ -4,6 +4,10 @@ Website Monitoring & Incident Management Platform
 
 DeployMate is a Python-based website monitoring platform that checks website availability, tracks response times, records monitoring history, and generates incident alerts when a website goes down.
 
+## 📸 Dashboard Preview
+
+![DeployMate Dashboard](screenshorts/dashboard.png)
+
 ✨ Features
 
 - Website Monitoring: Monitor registered websites automatically.
